@@ -284,10 +284,11 @@ func NewWithOptions(opts ...Option) *Viper {
 // Reset is intended for testing, will reset all to default settings.
 // In the public interface for the viper package so applications
 // can use it in their testing as well.
+// To register remote providers after reset use remote.RegisterProviders()
 func Reset() {
 	v = New()
 	SupportedExts = []string{"json", "toml", "yaml", "yml", "properties", "props", "prop", "hcl", "dotenv", "env", "ini"}
-	// SupportedRemoteProviders = []string{"etcd", "consul", "firestore"}
+	supportedRemoteProviders = []string{}
 }
 
 type defaultRemoteProvider struct {
@@ -327,9 +328,9 @@ type RemoteProvider interface {
 // SupportedExts are universally supported extensions.
 var SupportedExts = []string{"json", "toml", "yaml", "yml", "properties", "props", "prop", "hcl", "dotenv", "env", "ini"}
 
-// SupportedRemoteProviders are universally supported remote providers.
-// var SupportedRemoteProviders = []string{"etcd", "consul", "firestore"}
-var SupportedRemoteProviders = []string{}
+// supportedRemoteProviders are universally supported remote providers.
+// It becomes populated by including github.com/spf13/viper/remote
+var supportedRemoteProviders = []string{}
 
 func OnConfigChange(run func(in fsnotify.Event)) { v.OnConfigChange(run) }
 func (v *Viper) OnConfigChange(run func(in fsnotify.Event)) {
@@ -337,7 +338,6 @@ func (v *Viper) OnConfigChange(run func(in fsnotify.Event)) {
 }
 
 func WatchConfig() { v.WatchConfig() }
-
 func (v *Viper) WatchConfig() {
 	initWG := sync.WaitGroup{}
 	initWG.Add(1)
@@ -476,6 +476,12 @@ func (v *Viper) AddConfigPath(in string) {
 	}
 }
 
+// RegisterRemoteProviders registers a remote provider
+func RegisterRemoteProviders() { v.RegisterRemoteProviders() }
+func (v *Viper) RegisterRemoteProviders(rp ...string) {
+	supportedRemoteProviders = append(supportedRemoteProviders, rp...)
+}
+
 // AddRemoteProvider adds a remote configuration source.
 // Remote Providers are searched in the order they are added.
 // provider is a string value: "etcd", "consul" or "firestore" are currently supported.
@@ -488,7 +494,7 @@ func AddRemoteProvider(provider, endpoint, path string) error {
 	return v.AddRemoteProvider(provider, endpoint, path)
 }
 func (v *Viper) AddRemoteProvider(provider, endpoint, path string) error {
-	if !stringInSlice(provider, SupportedRemoteProviders) {
+	if !stringInSlice(provider, supportedRemoteProviders) {
 		return UnsupportedRemoteProviderError(provider)
 	}
 	if provider != "" && endpoint != "" {
@@ -518,9 +524,8 @@ func (v *Viper) AddRemoteProvider(provider, endpoint, path string) error {
 func AddSecureRemoteProvider(provider, endpoint, path, secretkeyring string) error {
 	return v.AddSecureRemoteProvider(provider, endpoint, path, secretkeyring)
 }
-
 func (v *Viper) AddSecureRemoteProvider(provider, endpoint, path, secretkeyring string) error {
-	if !stringInSlice(provider, SupportedRemoteProviders) {
+	if !stringInSlice(provider, supportedRemoteProviders) {
 		return UnsupportedRemoteProviderError(provider)
 	}
 	if provider != "" && endpoint != "" {
