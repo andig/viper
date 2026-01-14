@@ -1747,7 +1747,7 @@ func TestSub(t *testing.T) {
 }
 
 func TestSubSlice(t *testing.T) {
-	var yamlList = []byte(`map:
+	yamlList := []byte(`map:
   foo: bar
 list:
 - foo: 0

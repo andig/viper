@@ -790,6 +790,9 @@ func (v *Viper) Sub(key string) *Viper {
 // SubSlice returns a slice of new Viper instances representing a sub tree of this instance.
 // Sub is case-insensitive for a key.
 func SubSlice(key string) []*Viper { return v.SubSlice(key) }
+
+// SubSlice returns a slice of new Viper instances representing a sub tree of this instance.
+// Sub is case-insensitive for a key.
 func (v *Viper) SubSlice(key string) []*Viper {
 	data := v.Get(key)
 	if data == nil {
