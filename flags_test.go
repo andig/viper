@@ -5,18 +5,20 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBindFlagValueSet(t *testing.T) {
+	Reset()
 	flagSet := pflag.NewFlagSet("test", pflag.ContinueOnError)
 
-	var testValues = map[string]*string{
+	testValues := map[string]*string{
 		"host":     nil,
 		"port":     nil,
 		"endpoint": nil,
 	}
 
-	var mutatedTestValues = map[string]string{
+	mutatedTestValues := map[string]string{
 		"host":     "localhost",
 		"port":     "6060",
 		"endpoint": "/public",
@@ -29,9 +31,7 @@ func TestBindFlagValueSet(t *testing.T) {
 	flagValueSet := pflagValueSet{flagSet}
 
 	err := BindFlagValues(flagValueSet)
-	if err != nil {
-		t.Fatalf("error binding flag set, %v", err)
-	}
+	require.NoError(t, err, "error binding flag set")
 
 	flagSet.VisitAll(func(flag *pflag.Flag) {
 		flag.Value.Set(mutatedTestValues[flag.Name])
@@ -39,13 +39,13 @@ func TestBindFlagValueSet(t *testing.T) {
 	})
 
 	for name, expected := range mutatedTestValues {
-		assert.Equal(t, Get(name), expected)
+		assert.Equal(t, expected, Get(name))
 	}
 }
 
 func TestBindFlagValue(t *testing.T) {
-	var testString = "testing"
-	var testValue = newStringValue(testString, &testString)
+	testString := "testing"
+	testValue := newStringValue(testString, &testString)
 
 	flag := &pflag.Flag{
 		Name:    "testflag",
@@ -59,7 +59,7 @@ func TestBindFlagValue(t *testing.T) {
 	assert.Equal(t, testString, Get("testvalue"))
 
 	flag.Value.Set("testing_mutate")
-	flag.Changed = true //hack for pflag usage
+	flag.Changed = true // hack for pflag usage
 
 	assert.Equal(t, "testing_mutate", Get("testvalue"))
 }
