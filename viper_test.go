@@ -1767,7 +1767,7 @@ list:
 	}
 
 	subvSlice = v.SubSlice("map")
-	assert.Equal(t, ([]*Viper)(nil), subvSlice)
+	assert.Equal(t, []*Viper(nil), subvSlice)
 }
 
 func TestSubWithKeyDelimiter(t *testing.T) {
